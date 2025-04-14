@@ -1,5 +1,6 @@
 import 'package:esqueleto_aplicacion_new/rutinasavanzadasPage.dart';
 import 'package:flutter/material.dart';
+//import 'comandos_voz.dart';
 
 class rutinasPage extends StatelessWidget {
   final List<String> rutinas = [

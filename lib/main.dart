@@ -10,8 +10,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicación médica',
-      home: inicioPage(),
+      title: 'Exoesqueleto v. sin voz',
+      home: InicioPage(),
        theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Color(0xFF0D1B2A),
         primaryColor: Colors.white,

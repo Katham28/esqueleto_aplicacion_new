@@ -1,8 +1,5 @@
-// voice_command_handler.dart
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-
-
 
 class ContinuousVoiceHandler {
   final stt.SpeechToText _speech = stt.SpeechToText();
@@ -10,84 +7,113 @@ class ContinuousVoiceHandler {
   final Map<String, WidgetBuilder> _commandRoutes;
   final String _notRecognizedMessage;
   final String _activationCommand;
+  final Function(bool isEnabled)? onStatusChanged;
+
   bool _isEnabled = false;
   bool _isProcessing = false;
+
+  final List<String> _deactivationCommands = [
+    'terminar',
+    'gracias asistente',
+    'silencio',
+  ];
 
   ContinuousVoiceHandler({
     required this.context,
     required Map<String, WidgetBuilder> commandRoutes,
     String notRecognizedMessage = 'Comando no reconocido',
-    String activationCommand = 'activar asistente',
+    String activationCommand = 'asistente',
+    this.onStatusChanged,
   })  : _commandRoutes = commandRoutes,
         _notRecognizedMessage = notRecognizedMessage,
         _activationCommand = activationCommand.toLowerCase();
 
-  /// Inicializa el reconocimiento de voz continuo
   Future<void> initializeContinuousListening() async {
     if (!await _speech.initialize()) {
       debugPrint('El reconocimiento de voz no está disponible');
       return;
     }
-
-    _speech.listen(
-      onResult: (result) => _processContinuousCommand(result.recognizedWords),
-      listenFor: Duration(hours: 1), // Escucha por mucho tiempo
-      pauseFor: Duration(seconds: 3),
-      localeId: 'es-ES',
-      listenMode: stt.ListenMode.dictation,
-      onSoundLevelChange: (level) {
-        // Opcional: puedes usar esto para animaciones de nivel de sonido
-      },
-    );
-
+    _startListening();
     _showListeningStatus();
   }
 
-  /// Procesa los comandos en modo continuo
-  void _processContinuousCommand(String command) {
-    if (_isProcessing) return;
-    
-    command = command.trim().toLowerCase();
-    debugPrint('Escuchado: $command');
+  void _startListening() {
+    _speech.listen(
+      onResult: (result) => _processContinuousCommand(result.recognizedWords),
+      listenFor: Duration(hours: 1),
+      pauseFor: Duration(seconds: 5),
+      localeId: 'es-ES',
+      listenMode: stt.ListenMode.dictation,
+    );
+  }
 
-    // Verifica el comando de activación
-    if (!_isEnabled && command.contains(_activationCommand)) {
-      _isEnabled = true;
-      _showFeedback('Asistente activado. Di un comando.');
-      return;
+  void _restartListening() async {
+    if (_speech.isListening) {
+      await _speech.stop();
     }
+    await Future.delayed(Duration(milliseconds: 300));
+    _startListening();
+  }
 
-    // Si está desactivado, ignora otros comandos
-    if (!_isEnabled) return;
+  void _processContinuousCommand(String command) async {
+    if (_isProcessing) return;
 
     _isProcessing = true;
 
-    // Busca coincidencias en los comandos registrados
+    command = command.trim().toLowerCase();
+    debugPrint('Escuchado: $command');
+
+    if (!_isEnabled && command.contains(_activationCommand)) {
+      _isEnabled = true;
+      onStatusChanged?.call(_isEnabled);
+      _showFeedback('Asistente activado. Di un comando.');
+      _isProcessing = false;
+      _restartListening();
+      return;
+    }
+
+    if (!_isEnabled) {
+      _isProcessing = false;
+      _restartListening();
+      return;
+    }
+
+    // Desactivación
+    if (_deactivationCommands.any((phrase) => command.contains(phrase))) {
+      _isEnabled = false;
+      onStatusChanged?.call(_isEnabled);
+      _showFeedback('Asistente desactivado.');
+      _isProcessing = false;
+      _restartListening();
+      return;
+    }
+
+    // Comandos conocidos
+    bool matched = false;
     for (var cmd in _commandRoutes.keys) {
       if (command.contains(cmd.toLowerCase())) {
         _navigateToScreen(cmd);
-        _isProcessing = false;
-        return;
+        matched = true;
+        break;
       }
     }
 
-    // Si no se reconoce el comando
-    if (command.isNotEmpty) {
+    // Comando no reconocido
+    if (!matched && command.isNotEmpty) {
       _showFeedback(_notRecognizedMessage);
     }
-    
+
     _isProcessing = false;
+    _restartListening();
   }
 
-  /// Navega a la pantalla correspondiente
   void _navigateToScreen(String command) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: _commandRoutes[command]!),
     );
-    _showFeedback('Navegando a $command');
+    _showFeedback('Navegando a "$command"...');
   }
 
-  /// Muestra feedback al usuario
   void _showFeedback(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -97,19 +123,15 @@ class ContinuousVoiceHandler {
     );
   }
 
-  /// Muestra el estado de escucha
   void _showListeningStatus() {
-    _showFeedback('Escuchando continuamente. Di "$_activationCommand" para activar');
+    _showFeedback('Escuchando. Di "$_activationCommand" para activar.');
   }
 
-  /// Detiene el reconocimiento de voz
   void stopListening() {
     _speech.stop();
     _isEnabled = false;
+    onStatusChanged?.call(_isEnabled);
   }
 
-  /// Verifica si el reconocimiento está activo
-  bool isListening() {
-    return _speech.isListening;
-  }
+  bool isListening() => _speech.isListening;
 }
