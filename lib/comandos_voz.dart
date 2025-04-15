@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-
+//import 'inicioPage.dart';
+//import 'rutinasavanzadasPage.dart';
+import 'rutinas.dart';
 class ContinuousVoiceHandler {
   final stt.SpeechToText _speech = stt.SpeechToText();
   final BuildContext context;
@@ -8,6 +10,7 @@ class ContinuousVoiceHandler {
   final String _notRecognizedMessage;
   final String _activationCommand;
   final Function(bool isEnabled)? onStatusChanged;
+
 
   bool _isEnabled = false;
   bool _isProcessing = false;
@@ -18,11 +21,27 @@ class ContinuousVoiceHandler {
     'silencio',
   ];
 
+  final List<String> rutinas = [
+    'Rutina de Marcha',
+    'Rutina de Piernas',
+    'Rutina de Equilibrio',
+    'Rehabilitación Avanzada++',
+  ];
+
+
+    final List<String> comma = [
+    'marcha',
+    'piernas',
+    'equilibrio',
+    'avanzada',
+  ];
+
+
   ContinuousVoiceHandler({
     required this.context,
     required Map<String, WidgetBuilder> commandRoutes,
     String notRecognizedMessage = 'Comando no reconocido',
-    String activationCommand = 'asistente',
+    String activationCommand = 'iniciar',
     this.onStatusChanged,
   })  : _commandRoutes = commandRoutes,
         _notRecognizedMessage = notRecognizedMessage,
@@ -49,7 +68,7 @@ class ContinuousVoiceHandler {
 
   void _restartListening() async {
     if (_speech.isListening) {
-      await _speech.stop();
+      //await _speech.stop();
     }
     await Future.delayed(Duration(milliseconds: 300));
     _startListening();
@@ -74,7 +93,7 @@ class ContinuousVoiceHandler {
 
     if (!_isEnabled) {
       _isProcessing = false;
-      _restartListening();
+      //_restartListening();
       return;
     }
 
@@ -94,24 +113,53 @@ class ContinuousVoiceHandler {
       if (command.contains(cmd.toLowerCase())) {
         _navigateToScreen(cmd);
         matched = true;
+        _restartListening();
         break;
       }
     }
 
+    // Comandos de rutina      
+    for (int i = 0; i < rutinas.length; i++) {
+        if (command.contains(comma[i].toLowerCase())) {
+           matched = true;
+          Future.delayed(Duration(milliseconds: 300), () {
+            
+            Rutinas.ejecutarRutina(context, i);
+
+           
+          });
+          debugPrint('*********Ejecutando rutina x voz: ${rutinas[i]}');
+           _restartListening();
+          break;
+        }
+      }
+
+
+      if (command.contains("desconectar")) {
+        Rutinas.navegarDesconectar(context);
+        matched = true;
+        _restartListening();
+        
+      }
+
+
     // Comando no reconocido
     if (!matched && command.isNotEmpty) {
       _showFeedback(_notRecognizedMessage);
+      _restartListening();
     }
 
     _isProcessing = false;
     _restartListening();
   }
 
+
   void _navigateToScreen(String command) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: _commandRoutes[command]!),
     );
-    _showFeedback('Navegando a "$command"...');
+   // _showFeedback('Navegando a "$command"...');
+    _restartListening();
   }
 
   void _showFeedback(String message) {

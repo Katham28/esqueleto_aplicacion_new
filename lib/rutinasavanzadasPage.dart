@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 
-class rutinasavanzadas extends StatelessWidget {
+class rutinasavanzadas extends StatefulWidget {
+  final String? commandToExecute;
+
+  const rutinasavanzadas({Key? key, this.commandToExecute}) : super(key: key);
+
+  @override
+  State<rutinasavanzadas> createState() => _rutinasavanzadasState();
+}
+
+class _rutinasavanzadasState extends State<rutinasavanzadas> {
   final List<String> rutinas = [
     'Ejercicio avanzado 1',
     'Ejercicio avanzado 2',
@@ -8,6 +17,37 @@ class rutinasavanzadas extends StatelessWidget {
     'Ejercicio avanzado 4',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.commandToExecute != null) {
+      int index = rutinas.indexOf(widget.commandToExecute!);
+      if (index != -1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _ejecutarRutina(index);
+        });
+      }
+    }
+  }
+
+  void _ejecutarRutina(int index) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Ejecutando: ${rutinas[index]}')),
+    );
+    // Aquí podrías colocar lógica de control real si es necesario
+
+    if (index==0){
+
+    }else if (index==1){
+
+    } else if (index==2){
+
+    }else{
+
+      
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,10 +57,8 @@ class rutinasavanzadas extends StatelessWidget {
         elevation: 0,
       ),
       body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: 
-          [
-
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 16),
@@ -48,11 +86,7 @@ class rutinasavanzadas extends StatelessWidget {
                         child: Text(rutinas[index], style: TextStyle(fontSize: 18)),
                       ),
                       ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Ejecutando: ${rutinas[index]}')),
-                          );
-                        },
+                        onPressed: () => _ejecutarRutina(index),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF003566),
                           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -68,9 +102,7 @@ class rutinasavanzadas extends StatelessWidget {
           ),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
-              Navigator.popUntil(context, ModalRoute.withName('/'));
-            },
+            onPressed: () => Navigator.popUntil(context, ModalRoute.withName('/')),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFC8102E),
               padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),

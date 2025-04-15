@@ -1,13 +1,28 @@
-import 'package:esqueleto_aplicacion_new/rutinasavanzadasPage.dart';
 import 'package:flutter/material.dart';
-//import 'comandos_voz.dart';
+import 'rutinas.dart';
+class rutinasPage extends StatefulWidget {
+  final String? commandToExecute;
 
-class rutinasPage extends StatelessWidget {
+  const rutinasPage({super.key, this.commandToExecute});
+
+  @override
+  State<rutinasPage> createState() => _rutinasPageState();
+}
+
+class _rutinasPageState extends State<rutinasPage> {
+  
   final List<String> rutinas = [
     'Rutina de Marcha',
     'Rutina de Piernas',
     'Rutina de Equilibrio',
     'Rehabilitación Avanzada++',
+  ];
+
+  final List<String> comma = [
+    'marcha',
+    'piernas',
+    'equilibrio',
+    'avanzada',
   ];
 
   final List<String> ima = [
@@ -23,6 +38,28 @@ class rutinasPage extends StatelessWidget {
     'Iniciar',
     '+++',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _ejecutarSiVienePorComando();
+  }
+
+  void _ejecutarSiVienePorComando() {
+    if (widget.commandToExecute != null) {
+      final comando = widget.commandToExecute!.toLowerCase();
+      for (int i = 0; i < rutinas.length; i++) {
+        if (comando.contains(comma[i].toLowerCase())) {
+          Future.delayed(Duration(milliseconds: 300), () {
+            Rutinas.ejecutarRutina(context, i);
+          });
+          break;
+        }
+      }
+    }
+  }
+
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +79,7 @@ class rutinasPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: Color(0xFF1B263B), // fondo del contenedor
+                    color: Color(0xFF1B263B),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -61,25 +98,13 @@ class rutinasPage extends StatelessWidget {
                         child: Text(rutinas[index], style: TextStyle(fontSize: 18)),
                       ),
                       ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Ejecutando: ${rutinas[index]}')),
-                          );
-                          
-
-                          if(index==3){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => rutinasavanzadas()));
-                          }
-                          
-                      
-                        },
+                        onPressed: () => Rutinas.ejecutarRutina(context, index),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF003566),
                           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: Text(textos[index], style: TextStyle(fontSize: 14)),
-                        
                       ),
                     ],
                   ),

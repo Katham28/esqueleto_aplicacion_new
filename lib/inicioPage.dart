@@ -1,3 +1,4 @@
+import 'package:esqueleto_aplicacion_new/rutinasavanzadasPage.dart';
 import 'package:flutter/material.dart';
 import 'rutinasPage.dart';
 import 'comandos_voz.dart';
@@ -19,13 +20,15 @@ class _InicioPageState extends State<InicioPage> {
     
     final commandRoutes = {
       'conectar': (context) => rutinasPage(),
+      'desconectar': (context) =>InicioPage(),
+      'avanzado': (context) => rutinasavanzadas()
     };
 
     _voiceHandler = ContinuousVoiceHandler(
       context: context,
       commandRoutes: commandRoutes,
       notRecognizedMessage: 'Comando no reconocido',
-      activationCommand: 'asistente',
+      activationCommand: 'iniciar',
       onStatusChanged: (isEnabled) {
         setState(() {
           _isAssistantActive = isEnabled;
@@ -34,6 +37,7 @@ class _InicioPageState extends State<InicioPage> {
     );
 
     _voiceHandler.initializeContinuousListening();
+    
   }
 
   @override
@@ -45,22 +49,20 @@ class _InicioPageState extends State<InicioPage> {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       appBar: AppBar(title: Text('Control Exoesqueleto')),
       body: Column(
-        children: [
-          // Indicador de estado
+      children: [
           Container(
             padding: EdgeInsets.all(12),
             child: Text(
-              _isAssistantActive ? 'Asistente escuchando' : 'Asistente desactivado',
-              style: TextStyle(
-                fontSize: 16,
-                color: _isAssistantActive ? Colors.green : Colors.grey,
-              ),
+              _isAssistantActive ? '🟢 Asistente escuchando' : '🔴 Asistente desactivado',
+              style: TextStyle(fontSize: 16),
             ),
           ),
-          
+         
+          SizedBox(height: 20),
           // Contenido principal
           Expanded(
             child: Center(
@@ -70,6 +72,7 @@ class _InicioPageState extends State<InicioPage> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
+                      
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => rutinasPage()),
