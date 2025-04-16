@@ -43,6 +43,7 @@ class _rutinasPageState extends State<rutinasPage> {
   void initState() {
     super.initState();
     _ejecutarSiVienePorComando();
+    
   }
 
   void _ejecutarSiVienePorComando() {
@@ -59,6 +60,7 @@ class _rutinasPageState extends State<rutinasPage> {
     }
   }
 
+  
  
 
   @override
@@ -98,7 +100,14 @@ class _rutinasPageState extends State<rutinasPage> {
                         child: Text(rutinas[index], style: TextStyle(fontSize: 18)),
                       ),
                       ElevatedButton(
-                        onPressed: () => Rutinas.ejecutarRutina(context, index),
+                        onPressed: () =>{ 
+                          Rutinas.ejecutarRutina(context, index),
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('🦾 Ejecutando: ${rutinas[index]}')),
+                          ),
+                          
+                          
+                          },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF003566),
                           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),

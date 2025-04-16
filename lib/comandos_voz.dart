@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-//import 'inicioPage.dart';
-//import 'rutinasavanzadasPage.dart';
 import 'rutinas.dart';
+
 class ContinuousVoiceHandler {
   final stt.SpeechToText _speech = stt.SpeechToText();
   final BuildContext context;
@@ -10,7 +9,7 @@ class ContinuousVoiceHandler {
   final String _notRecognizedMessage;
   final String _activationCommand;
   final Function(bool isEnabled)? onStatusChanged;
-
+  Function(String)? _customCommandHandler; // <- agregado
 
   bool _isEnabled = false;
   bool _isProcessing = false;
@@ -28,14 +27,19 @@ class ContinuousVoiceHandler {
     'Rehabilitación Avanzada++',
   ];
 
-
-    final List<String> comma = [
+  final List<String> comma = [
     'marcha',
     'piernas',
     'equilibrio',
     'avanzada',
   ];
 
+    final List<String> commaA = [
+    'uno',
+    'dos',
+    'tres',
+    'cuatro',
+  ];
 
   ContinuousVoiceHandler({
     required this.context,
@@ -60,7 +64,7 @@ class ContinuousVoiceHandler {
     _speech.listen(
       onResult: (result) => _processContinuousCommand(result.recognizedWords),
       listenFor: Duration(hours: 1),
-      pauseFor: Duration(seconds: 5),
+      pauseFor: Duration(seconds: 10),
       localeId: 'es-ES',
       listenMode: stt.ListenMode.dictation,
     );
@@ -68,11 +72,13 @@ class ContinuousVoiceHandler {
 
   void _restartListening() async {
     if (_speech.isListening) {
-      //await _speech.stop();
+      await _speech.stop();
     }
     await Future.delayed(Duration(milliseconds: 300));
     _startListening();
   }
+
+ 
 
   void _processContinuousCommand(String command) async {
     if (_isProcessing) return;
@@ -93,11 +99,9 @@ class ContinuousVoiceHandler {
 
     if (!_isEnabled) {
       _isProcessing = false;
-      //_restartListening();
       return;
     }
 
-    // Desactivación
     if (_deactivationCommands.any((phrase) => command.contains(phrase))) {
       _isEnabled = false;
       onStatusChanged?.call(_isEnabled);
@@ -107,7 +111,6 @@ class ContinuousVoiceHandler {
       return;
     }
 
-    // Comandos conocidos
     bool matched = false;
     for (var cmd in _commandRoutes.keys) {
       if (command.contains(cmd.toLowerCase())) {
@@ -118,47 +121,59 @@ class ContinuousVoiceHandler {
       }
     }
 
-    // Comandos de rutina      
+  //rutinas 
     for (int i = 0; i < rutinas.length; i++) {
-        if (command.contains(comma[i].toLowerCase())) {
-           matched = true;
-          Future.delayed(Duration(milliseconds: 300), () {
-            
-            Rutinas.ejecutarRutina(context, i);
-
-           
-          });
-          debugPrint('*********Ejecutando rutina x voz: ${rutinas[i]}');
-           _restartListening();
-          break;
-        }
-      }
-
-
-      if (command.contains("desconectar")) {
-        Rutinas.navegarDesconectar(context);
+      if (command.contains(comma[i].toLowerCase())) {
         matched = true;
+        Future.delayed(Duration(milliseconds: 300), () {
+          Rutinas.ejecutarRutina(context, i);
+        });
+        debugPrint('*********Ejecutando rutina x voz: ${rutinas[i]}');
         _restartListening();
-        
+        break;
       }
+    }
 
+    //rutinas avanzadas 
+     for (int i = 0; i < commaA.length; i++) {
+      if (command.contains(commaA[i].toLowerCase())) {
+        matched = true;
+        Future.delayed(Duration(milliseconds: 300), () {
+          Rutinas.ejecutarRutinaAvanzada(context, i);
+        });
+        debugPrint('*********Ejecutando rutina AVANZADA x voz: $commaA');
+        _restartListening();
+        break;
+      }
+    }
 
-    // Comando no reconocido
-    if (!matched && command.isNotEmpty) {
+    if (command.contains("desconectar")) {
+      Rutinas.navegarDesconectar(context);
+      matched = true;
+      _restartListening();
+    }
+
+    if (!matched && _customCommandHandler != null) {
+      _customCommandHandler!(command);
+      matched = true;
+      _restartListening();
+    }
+    else if (!matched && command.isNotEmpty) {
       _showFeedback(_notRecognizedMessage);
+      _restartListening();
+    }
+    else{
       _restartListening();
     }
 
     _isProcessing = false;
-    _restartListening();
+   // _restartListening();
   }
-
 
   void _navigateToScreen(String command) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: _commandRoutes[command]!),
     );
-   // _showFeedback('Navegando a "$command"...');
     _restartListening();
   }
 
@@ -169,6 +184,7 @@ class ContinuousVoiceHandler {
         duration: Duration(seconds: 2),
       ),
     );
+    //_restartListening();
   }
 
   void _showListeningStatus() {
@@ -182,4 +198,9 @@ class ContinuousVoiceHandler {
   }
 
   bool isListening() => _speech.isListening;
+
+  void setCustomCommandHandler(Function(String) handler) {
+    _customCommandHandler = handler;
+    _restartListening();
+  }
 }

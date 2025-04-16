@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'rutinas.dart';
+import 'comandos_voz.dart';
+import 'inicioPage.dart';
 class rutinasavanzadas extends StatefulWidget {
   final String? commandToExecute;
 
@@ -11,43 +13,40 @@ class rutinasavanzadas extends StatefulWidget {
 
 class _rutinasavanzadasState extends State<rutinasavanzadas> {
   final List<String> rutinas = [
-    'Ejercicio avanzado 1',
-    'Ejercicio avanzado 2',
-    'Ejercicio avanzado 3',
-    'Ejercicio avanzado 4',
+    '1 ',
+    '2',
+    '3',
+    '4',
   ];
 
+  
   @override
   void initState() {
     super.initState();
+    _ejecutarSiVienePorComando();
+  }
+  final List<String> commaA = [
+    'uno',
+    'dos',
+    'tres',
+    'cuatro',
+  ];
+
+  void _ejecutarSiVienePorComando() {
     if (widget.commandToExecute != null) {
-      int index = rutinas.indexOf(widget.commandToExecute!);
-      if (index != -1) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _ejecutarRutina(index);
-        });
+      final comando = widget.commandToExecute!.toLowerCase();
+      for (int i = 0; i < rutinas.length; i++) {
+        if (comando.contains(commaA[i].toLowerCase())) {
+          Future.delayed(Duration(milliseconds: 300), () {
+            Rutinas.ejecutarRutinaAvanzada(context, i);
+          });
+          break;
+        }
       }
     }
   }
 
-  void _ejecutarRutina(int index) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Ejecutando: ${rutinas[index]}')),
-    );
-    // Aquí podrías colocar lógica de control real si es necesario
-
-    if (index==0){
-
-    }else if (index==1){
-
-    } else if (index==2){
-
-    }else{
-
-      
-    }
-  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +85,14 @@ class _rutinasavanzadasState extends State<rutinasavanzadas> {
                         child: Text(rutinas[index], style: TextStyle(fontSize: 18)),
                       ),
                       ElevatedButton(
-                        onPressed: () => _ejecutarRutina(index),
+                        onPressed: () => { 
+                          Rutinas.ejecutarRutinaAvanzada(context, index),
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('🦾 Ejecutando: ${rutinas[index]}')),
+                          ),
+                          
+                          
+                          },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF003566),
                           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),

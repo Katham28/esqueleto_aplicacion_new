@@ -1,6 +1,6 @@
-import 'package:esqueleto_aplicacion_new/rutinasavanzadasPage.dart';
 import 'package:flutter/material.dart';
 import 'rutinasPage.dart';
+import 'rutinasavanzadasPage.dart';
 import 'comandos_voz.dart';
 
 class InicioPage extends StatefulWidget {
@@ -17,11 +17,11 @@ class _InicioPageState extends State<InicioPage> {
   @override
   void initState() {
     super.initState();
-    
+
     final commandRoutes = {
       'conectar': (context) => rutinasPage(),
-      'desconectar': (context) =>InicioPage(),
-      'avanzado': (context) => rutinasavanzadas()
+      'desconectar': (context) => InicioPage(),
+      'avanzado': (context) => rutinasavanzadas(),
     };
 
     _voiceHandler = ContinuousVoiceHandler(
@@ -46,14 +46,13 @@ class _InicioPageState extends State<InicioPage> {
     super.dispose();
   }
 
-
+  
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       appBar: AppBar(title: Text('Control Exoesqueleto')),
       body: Column(
-      children: [
+        children: [
           Container(
             padding: EdgeInsets.all(12),
             child: Text(
@@ -61,18 +60,13 @@ class _InicioPageState extends State<InicioPage> {
               style: TextStyle(fontSize: 16),
             ),
           ),
-         
-          SizedBox(height: 20),
-          // Contenido principal
           Expanded(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => rutinasPage()),
@@ -80,7 +74,6 @@ class _InicioPageState extends State<InicioPage> {
                     },
                     child: Text('Conectar Exoesqueleto'),
                   ),
-                  SizedBox(height: 20),
                 ],
               ),
             ),
