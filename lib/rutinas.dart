@@ -1,10 +1,14 @@
-import 'package:esqueleto_aplicacion_new/RutinasPage.dart';
-import 'package:esqueleto_aplicacion_new/inicioPage.dart';
+// lib/rutinas.dart – versión corregida 
+// Mantiene todas las rutinas y navegaciones en un único lugar.
+// Asegúrate de ajustar las rutas de import si cambias el nombre del paquete.
+
 import 'package:flutter/material.dart';
+import 'rutinasPage.dart';
 import 'rutinasavanzadasPage.dart';
+import 'inicioPage.dart';
+
 class Rutinas {
-  
-  // Lista de rutinas disponibles
+  /// Lista visible de rutinas principales (0‑3)
   static const List<String> rutinasDisponibles = [
     'Rutina de Marcha',
     'Rutina de Piernas',
@@ -12,37 +16,38 @@ class Rutinas {
     'Rehabilitación Avanzada++',
   ];
 
-  
+  // ───────────────────────── Navegación ─────────────────────────
 
-  // Método estático para obtener los íconos de las rutinas
-  static List<String> obtenerIconosRutinas() {
-    return [
-      'assets/rut_marcha.png',
-      'assets/rut_piernas.png',
-      'assets/rut_equilibrio.png',
-      'assets/rut_reha_avanzada.png',
-    ];
+  /// Navega a la selección de rutinas normales.
+  static void navegarConectar(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const rutinasPage()),
+    );
   }
 
-  // Método estático para obtener los textos de los botones
-  static List<String> obtenerTextosBotones() {
-    return [
-      'Iniciar',
-      'Iniciar',
-      'Iniciar',
-      '+++',
-    ];
+  /// Navega a la lista de rutinas avanzadas.
+  static void _navegarARutinaAvanzada(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RutinasAvanzadasPage()),
+    );
   }
 
-  // Método estático para ejecutar una rutina específica
+  /// Cierra cualquier conexión / vuelve a Inicio.
+  static void navegarDesconectar(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const InicioPage()),
+          (route) => false,
+    );
+  }
+
+  // ──────────────────────── Ejecución de rutinas ────────────────────────
+
+  /// Ejecuta una rutina principal por índice.
   static void ejecutarRutina(BuildContext context, int index) {
     if (index < 0 || index >= rutinasDisponibles.length) return;
 
-    //ScaffoldMessenger.of(context).showSnackBar(
-    //  SnackBar(content: Text('🦾 Ejecutando: ${rutinasDisponibles[index]}')),
-    //);
-
-    // Lógica específica para cada rutina
     switch (index) {
       case 0:
         _ejecutarMarcha(context);
@@ -54,31 +59,22 @@ class Rutinas {
         _ejecutarEquilibrio(context);
         break;
       case 3:
+      // La 4.ª opción es en realidad un sub‑menú de avanzadas
         _navegarARutinaAvanzada(context);
         break;
-      
-
     }
   }
 
-  static void iniciar (){
+  /// Ejecuta una rutina avanzada (índices 0‑3 de la lista avanzada).
+  static void ejecutarRutinaAvanzada(BuildContext context, int index) {
+    if (index < 0 || index > 3) return;
 
-  }
-
-  static void ejecutarRutinaAvanzada (BuildContext context, int index) {
-    if (index < 0 || index >= rutinasDisponibles.length) return;
-
-    //ScaffoldMessenger.of(context).showSnackBar(
-    //  SnackBar(content: Text('🦾 Ejecutando rutina avanzada: $index')),
-    //);
-
-    // Lógica específica para cada rutina
     switch (index) {
       case 0:
-         _ejecutarAvanzada1(context);
+        _ejecutarAvanzada1(context);
         break;
       case 1:
-         _ejecutarAvanzada2(context);
+        _ejecutarAvanzada2(context);
         break;
       case 2:
         _ejecutarAvanzada3(context);
@@ -86,87 +82,45 @@ class Rutinas {
       case 3:
         _ejecutarAvanzada4(context);
         break;
-      
-
     }
   }
 
+  // ────────────────────────── Privados ──────────────────────────
 
-  // Métodos privados para cada rutina específica
+  static void _showSnack(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text)),
+    );
+  }
+
+  // Rutinas principales
   static void _ejecutarMarcha(BuildContext context) {
-    // Implementación específica para rutina de marcha
+    _showSnack(context, '🦾 Iniciando rutina de Marcha');
+    // TODO: enviar comando real por WiFi/Bluetooth…
   }
 
   static void _ejecutarPiernas(BuildContext context) {
-    // Implementación específica para rutina de piernas
+    _showSnack(context, '🦾 Iniciando rutina de Piernas');
   }
 
   static void _ejecutarEquilibrio(BuildContext context) {
-    // Implementación específica para rutina de equilibrio
+    _showSnack(context, '🦾 Iniciando rutina de Equilibrio');
   }
 
-
+  // Rutinas avanzadas
   static void _ejecutarAvanzada1(BuildContext context) {
-    // Implementación específica para rutina de equilibrio
-
-
+    _showSnack(context, '🔥 Avanzada 1');
   }
-
 
   static void _ejecutarAvanzada2(BuildContext context) {
-    // Implementación específica para rutina de equilibrio
-
-
+    _showSnack(context, '🔥 Avanzada 2');
   }
 
-  
   static void _ejecutarAvanzada3(BuildContext context) {
-    // Implementación específica para rutina de equilibrio
-
-
+    _showSnack(context, '🔥 Avanzada 3');
   }
 
-  
   static void _ejecutarAvanzada4(BuildContext context) {
-    // Implementación específica para rutina de equilibrio
-
-
-  }
-  static void _navegarARutinaAvanzada(BuildContext context) {
-    // Navegación a la pantalla de rutinas avanzadas
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => rutinasavanzadas(),
-      ),
-    );
-  }
-
-   
-  static void navegarDesconectar(BuildContext context) {
-    // Navegación a la pantalla de rutinas avanzadas
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => InicioPage(),
-      ),
-    );
-  }
-
-
-  static void navegarconectar(BuildContext context) {
-    // Navegación a la pantalla de rutinas avanzadas
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => rutinasPage(),
-      ),
-    );
+    _showSnack(context, '🔥 Avanzada 4');
   }
 }
-
-
-  
-
-
-

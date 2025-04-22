@@ -2,39 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'rutinas.dart';
 
-class ContinuousVoiceHandler {
+/// Maneja el reconocimiento de voz continuo para toda la app.
+/// Se mantiene vivo aunque cambies de pantalla y se recupera
+/// solo tras silencios o al volver del segundo plano.
+class ContinuousVoiceHandler with WidgetsBindingObserver {
+  // ========= CONFIGURACIÓN =========
   final stt.SpeechToText _speech = stt.SpeechToText();
   final BuildContext context;
   final Map<String, WidgetBuilder> _commandRoutes;
   final String _notRecognizedMessage;
   final String _activationCommand;
   final Function(bool isEnabled)? onStatusChanged;
-  Function(String)? _customCommandHandler; // <- agregado
+  Function(String)? _customCommandHandler;
 
   bool _isEnabled = false;
   bool _isProcessing = false;
 
+  // Comandos “globales”
   final List<String> _deactivationCommands = [
     'terminar',
     'gracias asistente',
     'silencio',
   ];
 
-  final List<String> rutinas = [
-    'Rutina de Marcha',
-    'Rutina de Piernas',
-    'Rutina de Equilibrio',
-    'Rehabilitación Avanzada++',
-  ];
-
-  final List<String> comma = [
+  final List<String> _rutinas = [
     'marcha',
     'piernas',
     'equilibrio',
     'avanzada',
   ];
 
-    final List<String> commaA = [
+  final List<String> _rutinasAv = [
     'uno',
     'dos',
     'tres',
@@ -44,28 +42,40 @@ class ContinuousVoiceHandler {
   ContinuousVoiceHandler({
     required this.context,
     required Map<String, WidgetBuilder> commandRoutes,
-    String notRecognizedMessage = 'Comando no reconocido',
+    String notRecognizedMessage = 'Perdón, no entendí.',
     String activationCommand = 'iniciar',
     this.onStatusChanged,
-  })  : _commandRoutes = commandRoutes,
+  }) : _commandRoutes = commandRoutes,
         _notRecognizedMessage = notRecognizedMessage,
-        _activationCommand = activationCommand.toLowerCase();
+        _activationCommand = activationCommand.toLowerCase() {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
+  // ========= INICIALIZACIÓN =========
   Future<void> initializeContinuousListening() async {
-    if (!await _speech.initialize()) {
-      debugPrint('El reconocimiento de voz no está disponible');
+    final ok = await _speech.initialize(
+      onStatus: _statusListener,
+      onError: (error) {
+        debugPrint('STT error: $error');
+        _restartListening();
+      },
+    );
+    if (!ok) {
+      debugPrint('El reconocimiento de voz no está disponible.');
       return;
     }
     _startListening();
     _showListeningStatus();
   }
 
+  // ========= ESCUCHA / REESCÚCHA =========
   void _startListening() {
     _speech.listen(
       onResult: (result) => _processContinuousCommand(result.recognizedWords),
-      listenFor: Duration(hours: 1),
-      pauseFor: Duration(seconds: 10),
-      localeId: 'es-ES',
+      listenFor: const Duration(hours: 1),
+      pauseFor: const Duration(seconds: 10),
+      partialResults: true,
+      localeId: 'es-MX',                // cambia a tu preferencia
       listenMode: stt.ListenMode.dictation,
     );
   }
@@ -74,20 +84,25 @@ class ContinuousVoiceHandler {
     if (_speech.isListening) {
       await _speech.stop();
     }
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
     _startListening();
   }
 
- 
+  void _statusListener(String status) {
+    if (status == 'notListening') {
+      _restartListening();
+    }
+  }
 
+  // ========= PROCESADO DE COMANDOS =========
   void _processContinuousCommand(String command) async {
     if (_isProcessing) return;
-
     _isProcessing = true;
 
     command = command.trim().toLowerCase();
-    debugPrint('Escuchado: $command');
+    debugPrint('‑ Escuchado: $command');
 
+    // Activación / desactivación
     if (!_isEnabled && command.contains(_activationCommand)) {
       _isEnabled = true;
       onStatusChanged?.call(_isEnabled);
@@ -95,14 +110,7 @@ class ContinuousVoiceHandler {
       _isProcessing = false;
       _restartListening();
       return;
-    }
-
-    if (!_isEnabled) {
-      _isProcessing = false;
-      return;
-    }
-
-    if (_deactivationCommands.any((phrase) => command.contains(phrase))) {
+    } else if (_isEnabled && _deactivationCommands.any(command.contains)) {
       _isEnabled = false;
       onStatusChanged?.call(_isEnabled);
       _showFeedback('Asistente desactivado.');
@@ -112,85 +120,81 @@ class ContinuousVoiceHandler {
     }
 
     bool matched = false;
-    for (var cmd in _commandRoutes.keys) {
-      if (command.contains(cmd.toLowerCase())) {
-        _navigateToScreen(cmd);
+
+    // Navegación básica
+    for (final key in _commandRoutes.keys) {
+      if (command.contains(key.toLowerCase())) {
+        _navigateToScreen(key);
         matched = true;
         _restartListening();
         break;
       }
     }
 
-  //rutinas 
-    for (int i = 0; i < rutinas.length; i++) {
-      if (command.contains(comma[i].toLowerCase())) {
+    // Rutinas normales
+    for (int i = 0; i < _rutinas.length && !matched; i++) {
+      if (command.contains(_rutinas[i])) {
         matched = true;
-        Future.delayed(Duration(milliseconds: 300), () {
-          Rutinas.ejecutarRutina(context, i);
-        });
-        debugPrint('*********Ejecutando rutina x voz: ${rutinas[i]}');
+        Future.delayed(const Duration(milliseconds: 300),
+                () => Rutinas.ejecutarRutina(context, i));
+        debugPrint('‑‑> Rutina $i vía voz');
         _restartListening();
-        break;
       }
     }
 
-    //rutinas avanzadas 
-     for (int i = 0; i < commaA.length; i++) {
-      if (command.contains(commaA[i].toLowerCase())) {
+    // Rutinas avanzadas
+    for (int i = 0; i < _rutinasAv.length && !matched; i++) {
+      if (command.contains(_rutinasAv[i])) {
         matched = true;
-        Future.delayed(Duration(milliseconds: 300), () {
-          Rutinas.ejecutarRutinaAvanzada(context, i);
-        });
-        debugPrint('*********Ejecutando rutina AVANZADA x voz: $commaA');
+        Future.delayed(const Duration(milliseconds: 300),
+                () => Rutinas.ejecutarRutinaAvanzada(context, i));
+        debugPrint('‑‑> Rutina avanzada $i vía voz');
         _restartListening();
-        break;
       }
     }
 
-    if (command.contains("desconectar")) {
+    // Comando “desconectar”
+    if (!matched && command.contains('desconectar')) {
       Rutinas.navegarDesconectar(context);
       matched = true;
       _restartListening();
     }
 
+    // Handler personalizado (por pantalla)
     if (!matched && _customCommandHandler != null) {
       _customCommandHandler!(command);
       matched = true;
       _restartListening();
     }
-    else if (!matched && command.isNotEmpty) {
+
+    // Nada coincidió
+    if (!matched) {
       _showFeedback(_notRecognizedMessage);
-      _restartListening();
-    }
-    else{
       _restartListening();
     }
 
     _isProcessing = false;
-   // _restartListening();
   }
 
-  void _navigateToScreen(String command) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: _commandRoutes[command]!),
+  void _navigateToScreen(String cmd) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: _commandRoutes[cmd]!),
     );
-    _restartListening();
   }
 
-  void _showFeedback(String message) {
+  // ========= UTILIDADES =========
+  void _showFeedback(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 2),
-      ),
+      SnackBar(content: Text(text)),
     );
-    //_restartListening();
   }
 
   void _showListeningStatus() {
-    _showFeedback('Escuchando. Di "$_activationCommand" para activar.');
+    _showFeedback('Escuchando… Di “$_activationCommand” para activar.');
   }
 
+  // ========= INTERFAZ PÚBLICA =========
   void stopListening() {
     _speech.stop();
     _isEnabled = false;
@@ -202,5 +206,20 @@ class ContinuousVoiceHandler {
   void setCustomCommandHandler(Function(String) handler) {
     _customCommandHandler = handler;
     _restartListening();
+  }
+
+  // ========= CICLO DE VIDA APP =========
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_speech.isListening) {
+      _restartListening();
+    } else if (state == AppLifecycleState.paused) {
+      _speech.stop();
+    }
+  }
+
+  void dispose() {
+    stopListening();
+    WidgetsBinding.instance.removeObserver(this);
   }
 }

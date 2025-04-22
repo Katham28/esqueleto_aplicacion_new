@@ -21,7 +21,7 @@ class _InicioPageState extends State<InicioPage> {
     final commandRoutes = {
       'conectar': (context) => rutinasPage(),
       'desconectar': (context) => InicioPage(),
-      'avanzado': (context) => rutinasavanzadas(),
+      'avanzado': (context) => RutinasAvanzadasPage(),
     };
 
     _voiceHandler = ContinuousVoiceHandler(
@@ -37,7 +37,6 @@ class _InicioPageState extends State<InicioPage> {
     );
 
     _voiceHandler.initializeContinuousListening();
-    
   }
 
   @override
@@ -46,7 +45,6 @@ class _InicioPageState extends State<InicioPage> {
     super.dispose();
   }
 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

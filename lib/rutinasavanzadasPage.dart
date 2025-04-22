@@ -1,52 +1,79 @@
 import 'package:flutter/material.dart';
-import 'rutinas.dart';
 import 'comandos_voz.dart';
-import 'inicioPage.dart';
-class rutinasavanzadas extends StatefulWidget {
-  final String? commandToExecute;
+import 'wifi_controller.dart';
 
-  const rutinasavanzadas({Key? key, this.commandToExecute}) : super(key: key);
+class RutinasAvanzadasPage extends StatefulWidget {
+  final String? commandToExecute;
+  const RutinasAvanzadasPage({Key? key, this.commandToExecute}) : super(key: key);
 
   @override
-  State<rutinasavanzadas> createState() => _rutinasavanzadasState();
+  State<RutinasAvanzadasPage> createState() => _RutinasAvanzadasPageState();
 }
 
-class _rutinasavanzadasState extends State<rutinasavanzadas> {
+class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
+  late ContinuousVoiceHandler _voiceHandler;
+
   final List<String> rutinas = [
-    '1 ',
-    '2',
-    '3',
-    '4',
+    'Ejercicio avanzado 1',
+    'Ejercicio avanzado 2',
+    'Ejercicio avanzado 3',
+    'Ejercicio avanzado 4',
   ];
 
-  
   @override
   void initState() {
     super.initState();
-    _ejecutarSiVienePorComando();
-  }
-  final List<String> commaA = [
-    'uno',
-    'dos',
-    'tres',
-    'cuatro',
-  ];
 
-  void _ejecutarSiVienePorComando() {
-    if (widget.commandToExecute != null) {
-      final comando = widget.commandToExecute!.toLowerCase();
-      for (int i = 0; i < rutinas.length; i++) {
-        if (comando.contains(commaA[i].toLowerCase())) {
-          Future.delayed(Duration(milliseconds: 300), () {
-            Rutinas.ejecutarRutinaAvanzada(context, i);
-          });
+    final Map<String, Function()> commandActions = {
+      'iniciar ejercicio avanzado 1': () => _ejecutarRutina(0),
+      'iniciar ejercicio avanzado 2': () => _ejecutarRutina(1),
+      'iniciar ejercicio avanzado 3': () => _ejecutarRutina(2),
+      'iniciar ejercicio avanzado 4': () => _ejecutarRutina(3),
+    };
+
+    _voiceHandler = ContinuousVoiceHandler(
+      context: context,
+      commandRoutes: {},
+    );
+
+    _voiceHandler.setCustomCommandHandler((String command) {
+      for (var key in commandActions.keys) {
+        if (command.contains(key)) {
+          commandActions[key]!();
           break;
         }
+      }
+    });
+
+    _voiceHandler.initializeContinuousListening();
+
+    if (widget.commandToExecute != null) {
+      final index = rutinas.indexOf(widget.commandToExecute!);
+      if (index != -1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _ejecutarRutina(index);
+        });
       }
     }
   }
 
-  
+  void _ejecutarRutina(int index) {
+    if (!mounted) return;
+
+    final comando = 'ejercicio${index + 1}'; // ejemplo: ejercicio1
+    WifiController.enviarComando(comando);   // aquí lo usas
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('🦿 Ejecutando: ${rutinas[index]}')),
+    );
+  }
+
+  @override
+  void dispose() {
+    _voiceHandler.stopListening();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,54 +83,41 @@ class _rutinasavanzadasState extends State<rutinasavanzadas> {
         elevation: 0,
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 16),
               itemCount: rutinas.length,
-              separatorBuilder: (context, index) => SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Color(0xFF1B263B),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF0D1B2A),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Image.asset('assets/rut_reha_avanzada.png', height: 40, width: 40),
+              separatorBuilder: (_, __) => SizedBox(height: 10),
+              itemBuilder: (context, index) => Container(
+                decoration: BoxDecoration(
+                  color: Color(0xFF1B263B),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF0D1B2A),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Text(rutinas[index], style: TextStyle(fontSize: 18)),
+                      child: Image.asset('assets/rut_reha_avanzada.png', height: 40, width: 40),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(child: Text(rutinas[index], style: TextStyle(fontSize: 18))),
+                    ElevatedButton(
+                      onPressed: () => _ejecutarRutina(index),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF003566),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      ElevatedButton(
-                        onPressed: () => { 
-                          Rutinas.ejecutarRutinaAvanzada(context, index),
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('🦾 Ejecutando: ${rutinas[index]}')),
-                          ),
-                          
-                          
-                          },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF003566),
-                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: Text('Iniciar', style: TextStyle(fontSize: 14)),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                      child: Text('Iniciar', style: TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           SizedBox(height: 20),
