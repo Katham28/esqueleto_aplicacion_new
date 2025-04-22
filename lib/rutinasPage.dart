@@ -115,7 +115,7 @@ class _rutinasPageState extends State<rutinasPage> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.popUntil(context, ModalRoute.withName('/'));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFC8102E),

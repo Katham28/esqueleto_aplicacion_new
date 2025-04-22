@@ -169,7 +169,7 @@ class ContinuousVoiceHandler with WidgetsBindingObserver {
 
     // Nada coincidió
     if (!matched) {
-      _showFeedback(_notRecognizedMessage);
+     // _showFeedback(_notRecognizedMessage);
       _restartListening();
     }
 

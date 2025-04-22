@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'rutinasPage.dart';
 import 'rutinasavanzadasPage.dart';
 import 'comandos_voz.dart';
+import 'ble_communicator.dart';
 
 class InicioPage extends StatefulWidget {
   const InicioPage({super.key});
@@ -12,6 +13,7 @@ class InicioPage extends StatefulWidget {
 
 class _InicioPageState extends State<InicioPage> {
   late ContinuousVoiceHandler _voiceHandler;
+  final bleCommunicator = BleCommunicator();
   bool _isAssistantActive = false;
 
   @override
@@ -65,10 +67,31 @@ class _InicioPageState extends State<InicioPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
+                     try {
+                      Future<bool> b=bleCommunicator.connect();
+                      //print('Conexión BLE establecida correctamente');
+                      // Aquí puedes actualizar el estado de la UI o habilitar funciones
+                      if (b==true){
+                        print('Conexión BLE establecida correctamente');
+
+                        Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => rutinasPage()),
                       );
+
+                      }else{
+                        print('Conexión BLE fallida');
+                      }
+
+                       
+                    } catch (e) {
+                      bleCommunicator.disconnect();
+                      print('Error al conectar: $e');
+                      // Maneja el error (mostrar mensaje al usuario, etc.)
+                    }
+
+
+                     
                     },
                     child: Text('Conectar Exoesqueleto'),
                   ),

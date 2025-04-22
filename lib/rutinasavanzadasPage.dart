@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'comandos_voz.dart';
 import 'wifi_controller.dart';
+import 'rutinas.dart';
 
 class RutinasAvanzadasPage extends StatefulWidget {
   final String? commandToExecute;
@@ -25,10 +26,10 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
     super.initState();
 
     final Map<String, Function()> commandActions = {
-      'iniciar ejercicio avanzado 1': () => _ejecutarRutina(0),
-      'iniciar ejercicio avanzado 2': () => _ejecutarRutina(1),
-      'iniciar ejercicio avanzado 3': () => _ejecutarRutina(2),
-      'iniciar ejercicio avanzado 4': () => _ejecutarRutina(3),
+      'uno': () =>  Rutinas.ejecutarRutinaAvanzada(context,0),
+      'dos': () =>  Rutinas.ejecutarRutinaAvanzada(context, 1),
+      'tres': () =>  Rutinas.ejecutarRutinaAvanzada(context, 2),
+      'cuatro': () =>  Rutinas.ejecutarRutinaAvanzada(context, 3),
     };
 
     _voiceHandler = ContinuousVoiceHandler(
@@ -51,7 +52,7 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
       final index = rutinas.indexOf(widget.commandToExecute!);
       if (index != -1) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _ejecutarRutina(index);
+           Rutinas.ejecutarRutinaAvanzada(context, index);
         });
       }
     }
@@ -108,7 +109,7 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
                     SizedBox(width: 16),
                     Expanded(child: Text(rutinas[index], style: TextStyle(fontSize: 18))),
                     ElevatedButton(
-                      onPressed: () => _ejecutarRutina(index),
+                      onPressed: () => Rutinas.ejecutarRutinaAvanzada(context, index),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF003566),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

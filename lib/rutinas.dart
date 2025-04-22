@@ -35,12 +35,17 @@ class Rutinas {
   }
 
   /// Cierra cualquier conexión / vuelve a Inicio.
-  static void navegarDesconectar(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const InicioPage()),
-          (route) => false,
-    );
-  }
+
+static void navegarDesconectar(BuildContext context) {
+  Navigator.popUntil(context, ModalRoute.withName('/'));
+  
+ // Navigator.pushAndRemoveUntil(
+  //  context,
+  //  MaterialPageRoute(builder: (_) => const InicioPage()),
+  //  (route) => false, // Elimina TODAS las rutas anteriores
+  //);
+}
+  
 
   // ──────────────────────── Ejecución de rutinas ────────────────────────
 

@@ -12,32 +12,45 @@ class BleCommunicator implements ExoCommunicator {
   late BluetoothDevice _device;
 
   @override
-  Future<void> connect() async {
-    // Inicia un escaneo corto
+Future<bool> connect() async {
+  try {
+    // Inicia escaneo
     await FlutterBluePlus.startScan(timeout: const Duration(seconds: 4));
 
-    // Espera hasta encontrar al dispositivo que anuncie el servicio esperado
-    final List<ScanResult> results = await FlutterBluePlus.scanResults.firstWhere(
-          (list) => list.any((r) =>
-          r.advertisementData.serviceUuids.contains(serviceUuid.toString())),
-    );
+    // Espera resultados
+    final List<ScanResult> results = await FlutterBluePlus.scanResults
+        .firstWhere((list) => list.any((r) =>
+            r.advertisementData.serviceUuids.contains(serviceUuid.toString())))
+        .timeout(const Duration(seconds: 5), onTimeout: () => []);
 
-    // Detén el escaneo para ahorrar batería
+    if (results.isEmpty) return false;
+    
     await FlutterBluePlus.stopScan();
 
-    // Selecciona el primer dispositivo coincidente
-    final ScanResult match = results.firstWhere((r) =>
-        r.advertisementData.serviceUuids.contains(serviceUuid.toString()));
-    _device = match.device;
+    // Encuentra dispositivo
+    try {
+      final match = results.firstWhere((r) =>
+          r.advertisementData.serviceUuids.contains(serviceUuid.toString()));
+      _device = match.device;
+    } catch (e) {
+      return false;
+    }
 
-    // Conéctate al dispositivo
-    await _device.connect();
+    // Conecta
+    await _device.connect(timeout: const Duration(seconds: 10));
 
-    // Descubre servicios y características
+    // Descubre servicios
     final services = await _device.discoverServices();
     final service = services.firstWhere((s) => s.uuid == serviceUuid);
     _cmdChar = service.characteristics.firstWhere((c) => c.uuid == charUuidCmd);
+
+    return true;
+    
+  } catch (e) {
+    await FlutterBluePlus.stopScan();
+    return false;
   }
+}
 
   @override
   Future<void> sendCommand(String command) async {
