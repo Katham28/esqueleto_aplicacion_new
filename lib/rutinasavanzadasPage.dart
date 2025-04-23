@@ -1,7 +1,8 @@
+// lib/rutinasavanzadasPage.dart (versión FINAL)
 import 'package:flutter/material.dart';
 import 'comandos_voz.dart';
-import 'wifi_controller.dart';
 import 'rutinas.dart';
+import 'rutinasPage.dart';
 
 class RutinasAvanzadasPage extends StatefulWidget {
   final String? commandToExecute;
@@ -13,7 +14,6 @@ class RutinasAvanzadasPage extends StatefulWidget {
 
 class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
   late ContinuousVoiceHandler _voiceHandler;
-
   final List<String> rutinas = [
     'Ejercicio avanzado 1',
     'Ejercicio avanzado 2',
@@ -25,16 +25,22 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
   void initState() {
     super.initState();
 
+    // Mapeo de comandos de voz a acciones
     final Map<String, Function()> commandActions = {
-      'uno': () =>  Rutinas.ejecutarRutinaAvanzada(context,0),
-      'dos': () =>  Rutinas.ejecutarRutinaAvanzada(context, 1),
-      'tres': () =>  Rutinas.ejecutarRutinaAvanzada(context, 2),
-      'cuatro': () =>  Rutinas.ejecutarRutinaAvanzada(context, 3),
+      'uno': () => _executeRutinaAvanzada(0),
+      'dos': () => _executeRutinaAvanzada(1),
+      'tres': () => _executeRutinaAvanzada(2),
+      'cuatro': () => _executeRutinaAvanzada(3),
+      'regresa': () => _goBackToRutinas(),
+      'atras': () => _goBackToRutinas(),
+      'volver': () => _goBackToRutinas(),
+      'desconectar': () => _desconectarExo(),
     };
 
     _voiceHandler = ContinuousVoiceHandler(
       context: context,
-      commandRoutes: {},
+      commandRoutes: {}, // No rutas de navegación por defecto
+      activationCommand: 'iniciar',
     );
 
     _voiceHandler.setCustomCommandHandler((String command) {
@@ -47,26 +53,21 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
     });
 
     _voiceHandler.initializeContinuousListening();
-
-    if (widget.commandToExecute != null) {
-      final index = rutinas.indexOf(widget.commandToExecute!);
-      if (index != -1) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-           Rutinas.ejecutarRutinaAvanzada(context, index);
-        });
-      }
-    }
   }
 
-  void _ejecutarRutina(int index) {
-    if (!mounted) return;
+  void _executeRutinaAvanzada(int index) {
+    Rutinas.ejecutarRutinaAvanzada(context, index);
+    
+  }
 
-    final comando = 'ejercicio${index + 1}'; // ejemplo: ejercicio1
-    WifiController.enviarComando(comando);   // aquí lo usas
+  void _goBackToRutinas() {
+    
+    Navigator.pop(context);
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('🦿 Ejecutando: ${rutinas[index]}')),
-    );
+  void _desconectarExo() {
+    
+    Rutinas.navegarDesconectar(context);
   }
 
   @override
@@ -78,11 +79,7 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Rehabilitación Avanzada++'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: Text('Rutinas Avanzadas')),
       body: Column(
         children: [
           Expanded(
@@ -98,18 +95,9 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
                 padding: EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Color(0xFF0D1B2A),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Image.asset('assets/rut_reha_avanzada.png', height: 40, width: 40),
-                    ),
-                    SizedBox(width: 16),
                     Expanded(child: Text(rutinas[index], style: TextStyle(fontSize: 18))),
                     ElevatedButton(
-                      onPressed: () => Rutinas.ejecutarRutinaAvanzada(context, index),
+                      onPressed: () => _executeRutinaAvanzada(index),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF003566),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -123,13 +111,13 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
           ),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => Navigator.popUntil(context, ModalRoute.withName('/')),
+            onPressed: () => _goBackToRutinas(),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFC8102E),
               padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             ),
-            child: Text('Apagar Exoesqueleto', style: TextStyle(fontSize: 16)),
+            child: Text('Regresa a Rutinas', style: TextStyle(fontSize: 16)),
           ),
           SizedBox(height: 20),
         ],

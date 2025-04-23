@@ -39,6 +39,8 @@ class ContinuousVoiceHandler with WidgetsBindingObserver {
     'cuatro',
   ];
 
+  
+
   ContinuousVoiceHandler({
     required this.context,
     required Map<String, WidgetBuilder> commandRoutes,
@@ -84,7 +86,7 @@ class ContinuousVoiceHandler with WidgetsBindingObserver {
     if (_speech.isListening) {
       await _speech.stop();
     }
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 900));
     _startListening();
   }
 

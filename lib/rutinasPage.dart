@@ -56,10 +56,17 @@ class _rutinasPageState extends State<rutinasPage> {
           break;
         }
       }
+
+
+          if (comando.contains("desconectar")) {
+          Future.delayed(Duration(milliseconds: 300), () {
+            Rutinas.navegarDesconectar(context);
+          });
+          
+        }
     }
   }
 
- 
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +122,7 @@ class _rutinasPageState extends State<rutinasPage> {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              Navigator.popUntil(context, ModalRoute.withName('/'));
+              Rutinas.navegarDesconectar(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFC8102E),

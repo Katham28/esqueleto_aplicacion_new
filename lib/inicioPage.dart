@@ -1,8 +1,10 @@
+// lib/inicioPage.dart (versión combinada BLE y WiFi lista para producción)
 import 'package:flutter/material.dart';
 import 'rutinasPage.dart';
 import 'rutinasavanzadasPage.dart';
 import 'comandos_voz.dart';
 import 'ble_communicator.dart';
+import 'comm_provider.dart';
 
 class InicioPage extends StatefulWidget {
   const InicioPage({super.key});
@@ -19,11 +21,12 @@ class _InicioPageState extends State<InicioPage> {
   @override
   void initState() {
     super.initState();
+    _conectarWifi();
 
     final commandRoutes = {
-      'conectar': (context) => rutinasPage(),
-      'desconectar': (context) => InicioPage(),
-      'avanzado': (context) => RutinasAvanzadasPage(),
+      'conectar': (context) => const rutinasPage(),
+      'desconectar': (context) => const InicioPage(),
+      'avanzado': (context) => const RutinasAvanzadasPage(),
     };
 
     _voiceHandler = ContinuousVoiceHandler(
@@ -41,6 +44,15 @@ class _InicioPageState extends State<InicioPage> {
     _voiceHandler.initializeContinuousListening();
   }
 
+  Future<void> _conectarWifi() async {
+    try {
+      await CommProvider.initWifi('192.168.4.1');
+      debugPrint('✅ Conectado por WiFi');
+    } catch (e) {
+      debugPrint('❌ Error al conectar por WiFi: $e');
+    }
+  }
+
   @override
   void dispose() {
     _voiceHandler.stopListening();
@@ -50,14 +62,14 @@ class _InicioPageState extends State<InicioPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Control Exoesqueleto')),
+      appBar: AppBar(title: const Text('Control Exoesqueleto')),
       body: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             child: Text(
               _isAssistantActive ? '🟢 Asistente escuchando' : '🔴 Asistente desactivado',
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
           ),
           Expanded(
@@ -66,34 +78,26 @@ class _InicioPageState extends State<InicioPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                     try {
-                      Future<bool> b=bleCommunicator.connect();
-                      //print('Conexión BLE establecida correctamente');
-                      // Aquí puedes actualizar el estado de la UI o habilitar funciones
-                      if (b==true){
-                        print('Conexión BLE establecida correctamente');
-
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => rutinasPage()),
-                      );
-
-                      }else{
-                        print('Conexión BLE fallida');
+                    onPressed: () async {
+                      try {
+                      //  final ok = await bleCommunicator.connect();
+                        //if (ok) {
+                         // debugPrint('✅ Conexión BLE exitosa');
+                         // if (context.mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const rutinasPage()),
+                            );
+                         // }
+                        //} else {
+                          //debugPrint('⚠️ Conexión BLE fallida');
+                       // }
+                      } catch (e) {
+                        //await bleCommunicator.disconnect();
+                        //debugPrint('❌ Error BLE: $e');
                       }
-
-                       
-                    } catch (e) {
-                      bleCommunicator.disconnect();
-                      print('Error al conectar: $e');
-                      // Maneja el error (mostrar mensaje al usuario, etc.)
-                    }
-
-
-                     
                     },
-                    child: Text('Conectar Exoesqueleto'),
+                    child: const Text('Conectar Exoesqueleto'),
                   ),
                 ],
               ),
