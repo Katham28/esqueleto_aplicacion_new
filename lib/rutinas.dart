@@ -34,10 +34,15 @@ class Rutinas {
     );
   }
 
+    static void goBackToRutinas(BuildContext context) {
+    Navigator.pop(context);
+  }
+
+
   /// Cierra cualquier conexión / vuelve a Inicio.
 
 static void navegarDesconectar(BuildContext context) {
-  Navigator.popUntil(context, ModalRoute.withName('/'));
+  Navigator.pop(context);
 
 }
   

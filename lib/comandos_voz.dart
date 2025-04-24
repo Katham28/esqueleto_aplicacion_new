@@ -39,13 +39,18 @@ class ContinuousVoiceHandler with WidgetsBindingObserver {
     'cuatro',
   ];
 
+    final List<String> _volver = [
+    'volver',
+    'regresar',
+  ];
+
   
 
   ContinuousVoiceHandler({
     required this.context,
     required Map<String, WidgetBuilder> commandRoutes,
     String notRecognizedMessage = 'Perdón, no entendí.',
-    String activationCommand = 'iniciar',
+    String activationCommand = 'asistente',
     this.onStatusChanged,
   }) : _commandRoutes = commandRoutes,
         _notRecognizedMessage = notRecognizedMessage,
@@ -112,14 +117,15 @@ class ContinuousVoiceHandler with WidgetsBindingObserver {
       _isProcessing = false;
       _restartListening();
       return;
-    } else if (_isEnabled && _deactivationCommands.any(command.contains)) {
-      _isEnabled = false;
-      onStatusChanged?.call(_isEnabled);
-      _showFeedback('Asistente desactivado.');
-      _isProcessing = false;
-      _restartListening();
-      return;
     }
+    // else if (_isEnabled && _deactivationCommands.any(command.contains)) {
+    //  _isEnabled = false;
+    //  onStatusChanged?.call(_isEnabled);
+    //  _showFeedback('Asistente desactivado.');
+    //  _isProcessing = false;
+    //  _restartListening();
+    //  return;
+    //}
 
     bool matched = false;
 
@@ -155,9 +161,24 @@ class ContinuousVoiceHandler with WidgetsBindingObserver {
       }
     }
 
-    // Comando “desconectar”
-    if (!matched && command.contains('desconectar')) {
-      Rutinas.navegarDesconectar(context);
+    //Regresar
+    for (int i = 0; i < _volver.length && !matched; i++) {
+      if (command.contains(_volver[i])) {
+        matched = true;
+        Future.delayed(const Duration(milliseconds: 300),
+                () => Rutinas.goBackToRutinas(context),);
+        debugPrint('‑‑> Regresando');
+        _restartListening();
+      }
+    }
+
+   // “desconectar”
+    if (!matched && command.contains("apagar") 
+            //|| command.contains("terminar")
+              ){
+          Future.delayed(const Duration(milliseconds: 300),
+                () => Rutinas.navegarDesconectar(context),);
+           
       matched = true;
       _restartListening();
     }

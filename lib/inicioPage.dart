@@ -5,6 +5,7 @@ import 'rutinasavanzadasPage.dart';
 import 'comandos_voz.dart';
 import 'ble_communicator.dart';
 import 'comm_provider.dart';
+import 'rutinas.dart';
 
 class InicioPage extends StatefulWidget {
   const InicioPage({super.key});
@@ -33,7 +34,7 @@ class _InicioPageState extends State<InicioPage> {
       context: context,
       commandRoutes: commandRoutes,
       notRecognizedMessage: 'Comando no reconocido',
-      activationCommand: 'iniciar',
+      activationCommand: 'asistente',
       onStatusChanged: (isEnabled) {
         setState(() {
           _isAssistantActive = isEnabled;
@@ -84,10 +85,7 @@ class _InicioPageState extends State<InicioPage> {
                         //if (ok) {
                          // debugPrint('✅ Conexión BLE exitosa');
                          // if (context.mounted) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const rutinasPage()),
-                            );
+                           Rutinas.navegarConectar(context);
                          // }
                         //} else {
                           //debugPrint('⚠️ Conexión BLE fallida');

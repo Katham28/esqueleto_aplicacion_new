@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'rutinas.dart';
+import 'rutinasavanzadasPage.dart';
+import 'inicioPage.dart'; 
 class rutinasPage extends StatefulWidget {
   final String? commandToExecute;
 
@@ -39,6 +41,9 @@ class _rutinasPageState extends State<rutinasPage> {
     '+++',
   ];
 
+   
+
+
   @override
   void initState() {
     super.initState();
@@ -58,7 +63,9 @@ class _rutinasPageState extends State<rutinasPage> {
       }
 
 
-          if (comando.contains("desconectar")) {
+          if (comando.contains("apagar") 
+          //|| comando.contains("terminar") 
+          ) {
           Future.delayed(Duration(milliseconds: 300), () {
             Rutinas.navegarDesconectar(context);
           });

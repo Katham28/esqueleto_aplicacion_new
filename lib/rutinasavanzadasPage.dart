@@ -14,6 +14,7 @@ class RutinasAvanzadasPage extends StatefulWidget {
 
 class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
   late ContinuousVoiceHandler _voiceHandler;
+  bool _isAssistantActive = false;
   final List<String> rutinas = [
     'Ejercicio avanzado 1',
     'Ejercicio avanzado 2',
@@ -31,16 +32,16 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
       'dos': () => _executeRutinaAvanzada(1),
       'tres': () => _executeRutinaAvanzada(2),
       'cuatro': () => _executeRutinaAvanzada(3),
-      'regresa': () => _goBackToRutinas(),
-      'atras': () => _goBackToRutinas(),
-      'volver': () => _goBackToRutinas(),
-      'desconectar': () => _desconectarExo(),
+      'regresa': () => Rutinas.goBackToRutinas(context),
+      'atras': () => Rutinas.goBackToRutinas(context),
+      'volver': () => Rutinas.goBackToRutinas(context),
+     // 'desconectar': () => _desconectarExo(),
     };
 
     _voiceHandler = ContinuousVoiceHandler(
       context: context,
       commandRoutes: {}, // No rutas de navegación por defecto
-      activationCommand: 'iniciar',
+      activationCommand: 'asistente',
     );
 
     _voiceHandler.setCustomCommandHandler((String command) {
@@ -59,12 +60,6 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
     Rutinas.ejecutarRutinaAvanzada(context, index);
     
   }
-
-  void _goBackToRutinas() {
-    
-    Navigator.pop(context);
-  }
-
   void _desconectarExo() {
     
     Rutinas.navegarDesconectar(context);
@@ -95,6 +90,7 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
                 padding: EdgeInsets.all(12),
                 child: Row(
                   children: [
+                    Image.asset('assets/rut_reha_avanzada.png', height: 40, width: 40),
                     Expanded(child: Text(rutinas[index], style: TextStyle(fontSize: 18))),
                     ElevatedButton(
                       onPressed: () => _executeRutinaAvanzada(index),
@@ -111,7 +107,7 @@ class _RutinasAvanzadasPageState extends State<RutinasAvanzadasPage> {
           ),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => _goBackToRutinas(),
+            onPressed: () => Rutinas.goBackToRutinas(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFC8102E),
               padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
